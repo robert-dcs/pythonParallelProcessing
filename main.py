@@ -2,14 +2,18 @@ import openpyxl
 import psycopg2
 import psycopg2.extras
 import time
-from functools import wraps
-from memory_profiler import memory_usage
-import multiprocessing as mp
 from multiprocessing import cpu_count
-import numpy as np
 from multiprocessing import Pool
 
-def create_staging_table(cursor) -> None:
+def create_staging_table() -> None:
+    connection = psycopg2.connect(
+        host="localhost",
+        database="postgres",
+        user="postgres",
+        password=321,
+    )
+    connection.autocommit = True
+    cursor = connection.cursor()
     cursor.execute("""
         DROP TABLE IF EXISTS persons;
         CREATE UNLOGGED TABLE persons (
@@ -17,67 +21,71 @@ def create_staging_table(cursor) -> None:
             Name varchar(255) NOT NULL
         );
     """)
-
-
-def profile(fn):
-    @wraps(fn)
-    def inner(*args, **kwargs):
-        fn_kwargs_str = ', '.join(f'{k}={v}' for k, v in kwargs.items())
-        print(f'\n{fn.__name__}({fn_kwargs_str})')
-
-        # Measure time
-        t = time.perf_counter()
-        retval = fn(*args, **kwargs)
-        elapsed = time.perf_counter() - t
-        print(f'Time   {elapsed:0.4}')
-
-        # Measure memory
-        mem, retval = memory_usage((fn, args, kwargs), retval=True, timeout=200, interval=1e-7)
-
-        print(f'Memory {max(mem) - min(mem)}')
-        return retval
-
-    return inner
-
+    print("Table dropped and created")
 
 def convert_list(list):
     return tuple(list)
 
+def convert_string(string):
+    return tuple(string)
 
-@profile
 def insert_execute_batch(connection, listaDepessoas) -> None:
     with connection.cursor() as cursor:
         create_staging_table(cursor)
         psycopg2.extras.execute_batch(cursor, "INSERT INTO persons (Name) VALUES (%s)", listaDepessoas)
 
-@profile
 def insert_person(person, conn=None) -> None:
-    sql = ("""insert into persons(name) values (%s);""" % person)
 
+    sql = "INSERT INTO persons(Name) VALUES (%s)"
+
+    connection = psycopg2.connect(
+        host="localhost",
+        database="postgres",
+        user="postgres",
+        password=321,
+    )
+
+    connection.autocommit = True
+    name = person[0]
     try:
-        cur = conn.cursor()
+        cur = connection.cursor()
         # execute the INSERT statement
-        cur.execute(sql)
-        conn.commit()
-        cur.close()
+        cur.execute('INSERT INTO persons (name) VALUES (%s)', name)
+        print(person + "saved")
+        connection.commit()
+        connection.close()
     except (Exception, psycopg2.DatabaseError) as error:
+        print(type(name))
+        print(name)
         print('Eu ruim na insercao', error)
     finally:
-        if conn is not None:
-            conn.close()
+        print('Connection closed')
+        if connection is not None:
+            connection.close()
 
-def synchronousProcessing(listOfPeople, conn=None) -> None:
+def synchronous_processing(listOfPeople) -> None:
+    create_staging_table()
+    start = time.time()
     for person in listOfPeople:
-        insert_person(person, conn)
+        insert_person(person)
+    end = time.time()
+    elapsedTime = end - start
+    print("Processed " + len(listOfPeople) + " rows synchronous and took " + elapsedTime + " seconds")
 
-def parallelProcessing(listOfPeople, conn=None):
+def parallel_processing(listOfPeople):
+    start = time.time()
+    for person in listOfPeople:
+        pool = Pool(cpu_count())
+        pool.map(insert_person, person)
+        pool.close()
+        pool.join()
 
-    df_list = np.array_split(listOfPeople, cpu_count())
-    pool = Pool(cpu_count())
-    res = pool.map(insert_person(), df_list)
-    pool.close()
-    pool.join()
-    print(res)
+    end = time.time()
+    elapsedTime = end - start
+    print("Processed " + len(listOfPeople) + " rows parallel and took " + elapsedTime + " seconds")
+
+def format_person(person):
+    return str(person).replace("'", '"')
 
 if __name__ == '__main__':
     listOfPeople = []
@@ -92,6 +100,9 @@ if __name__ == '__main__':
         password=321,
     )
     connection.autocommit = True
-    insert_execute_batch(connection, convert_list(listOfPeople))
+    # insert_execute_batch(connection, convert_list(listOfPeople))
+    synchronous_processing(listOfPeople)
+    # parallel_processing(convert_list(listOfPeople))
     print("People saved.")
+
 
