@@ -50,7 +50,7 @@ def synchronous_processing(listOfPeople) -> None:
         insert_person(person)
     end = (time.time() * 1000)
     elapsed_time = end - start
-    print("Synchronous implementation took " + elapsed_time + " milliseconds and processed " + len(listOfPeople) + " records.\n")
+    print("Synchronous implementation took " + str(elapsed_time) + " milliseconds and processed " + str(len(listOfPeople)) + " records.\n")
 
 def parallel_processing(listOfPeople):
     drop_and_create_table()
@@ -63,11 +63,11 @@ def parallel_processing(listOfPeople):
             future.result()
         end = (time.time() * 1000)
         elapsed_time = end - start
-        print("Synchronous implementation took " + elapsed_time + " milliseconds and processed " + len(listOfPeople) + " records.\n")
+        print("Parallel implementation took " + str(elapsed_time) + " milliseconds and processed " + str(len(listOfPeople)) + " records.\n")
 
 if __name__ == '__main__':
     listOfPeople = []
-    wb = openpyxl.load_workbook(filename="data1000000.xlsx")
+    wb = openpyxl.load_workbook(filename="sample/data1000.xlsx")
     for person in wb['Sheet1'].iter_rows(values_only=True):
         listOfPeople.append(person)
 
