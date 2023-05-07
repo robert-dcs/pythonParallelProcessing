@@ -50,7 +50,7 @@ def synchronous_processing(listOfPeople) -> None:
         insert_person(person)
     end = (time.time() * 1000)
     elapsed_time = end - start
-    print("Synchronous implementation took " + str(elapsed_time) + " milliseconds and processed " + str(len(listOfPeople)) + " records.\n")
+    print("Synchronous implementation took " + str(elapsed_time) + " milliseconds and processed " + str(len(listOfPeople)) + " records.")
 
 def parallel_processing(listOfPeople):
     drop_and_create_table()
@@ -63,7 +63,7 @@ def parallel_processing(listOfPeople):
             future.result()
         end = (time.time() * 1000)
         elapsed_time = end - start
-        print("Parallel implementation took " + str(elapsed_time) + " milliseconds and processed " + str(len(listOfPeople)) + " records.\n")
+        print("Parallel implementation took " + str(elapsed_time) + " milliseconds and processed " + str(len(listOfPeople)) + " records.")
 
 if __name__ == '__main__':
     listOfPeople = []
@@ -71,6 +71,8 @@ if __name__ == '__main__':
     for person in wb['Sheet1'].iter_rows(values_only=True):
         listOfPeople.append(person)
 
+    print("First record from sample: " + str(listOfPeople[0]))
+    print("Last record from sample: " + str(listOfPeople[len(listOfPeople)-1]))
     synchronous_processing(convert_list_to_tuple(listOfPeople))
     parallel_processing(convert_list_to_tuple(listOfPeople))
     print("People saved.")
