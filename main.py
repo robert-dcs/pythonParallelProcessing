@@ -15,7 +15,6 @@ simple_pool = psycopg2.pool.SimpleConnectionPool(
     database="postgres"
 )
 
-
 def create_staging_table():
     connection = simple_pool.getconn()
     connection.autocommit = True
@@ -33,16 +32,7 @@ def create_staging_table():
 def convert_list(list):
     return tuple(list)
 
-def convert_string(string):
-    return tuple(string)
-def insert_execute_batch(connection, listaDepessoas) -> None:
-    with connection.cursor() as cursor:
-        create_staging_table(cursor)
-        psycopg2.extras.execute_batch(cursor, "INSERT INTO persons (Name) VALUES (%s)", listaDepessoas)
-
 def insert_person(person) -> None:
-
-
     connection = simple_pool.getconn()
     if connection:
         sql = "INSERT INTO persons(Name) VALUES (%s)"
@@ -56,8 +46,6 @@ def insert_person(person) -> None:
             simple_pool.putconn(connection)
         except (Exception, psycopg2.DatabaseError) as error:
             print('Deu ruim na insercao', error)
-
-
 
 def synchronous_processing(listOfPeople) -> None:
     create_staging_table()
