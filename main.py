@@ -20,8 +20,8 @@ def drop_and_create_table():
     connection.autocommit = True
     cursor = connection.cursor()
     cursor.execute("""
-            DROP TABLE IF EXISTS persons;
-            CREATE TABLE persons (
+            DROP TABLE IF EXISTS person;
+            CREATE TABLE person (
                 id SERIAL PRIMARY KEY,
                 Name varchar(255) NOT NULL
             );
@@ -37,7 +37,7 @@ def insert_person(person) -> None:
     if connection:
         try:
             cur = connection.cursor()
-            cur.execute('INSERT INTO persons (name) VALUES (%s)', person)
+            cur.execute('INSERT INTO person (name) VALUES (%s)', person)
             connection.commit()
             simple_pool.putconn(connection)
         except (Exception, psycopg2.DatabaseError) as error:
@@ -75,6 +75,3 @@ if __name__ == '__main__':
     print("Last record from sample: " + str(listOfPeople[len(listOfPeople)-1]))
     synchronous_processing(convert_list_to_tuple(listOfPeople))
     parallel_processing(convert_list_to_tuple(listOfPeople))
-    print("People saved.")
-
-
