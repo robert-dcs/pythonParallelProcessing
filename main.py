@@ -43,14 +43,15 @@ def insert_person(person) -> None:
         except (Exception, psycopg2.DatabaseError) as error:
             print(error)
 
-def synchronous_processing(listOfPeople) -> None:
+def synchronous_processing(listOfPeople):
     drop_and_create_table()
     start = (time.time() * 1000)
     for person in listOfPeople:
         insert_person(person)
     end = (time.time() * 1000)
     elapsed_time = end - start
-    print("Synchronous implementation took " + str(elapsed_time) + " milliseconds and processed " + str(len(listOfPeople)) + " records.")
+    print("[Python] Synchronous implementation took " + str(elapsed_time) + " milliseconds.")
+    print("[Python] Processed " + str(len(listOfPeople)) + " records.")
 
 def parallel_processing(listOfPeople):
     drop_and_create_table()
@@ -63,7 +64,8 @@ def parallel_processing(listOfPeople):
             future.result()
         end = (time.time() * 1000)
         elapsed_time = end - start
-        print("Parallel implementation took " + str(elapsed_time) + " milliseconds and processed " + str(len(listOfPeople)) + " records.")
+        print("[Python] Parallel implementation took " + str(elapsed_time) + " milliseconds.")
+        print("[Python] Processed " + str(len(listOfPeople)) + " records.")
 
 if __name__ == '__main__':
     listOfPeople = []
