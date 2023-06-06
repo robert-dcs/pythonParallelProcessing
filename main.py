@@ -57,19 +57,16 @@ def parallel_processing(listOfPeople):
     drop_and_create_table()
     start = (time.time() * 1000)
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = []
         for person in listOfPeople:
-            futures.append(executor.submit(insert_person, [person]))
-        for future in concurrent.futures.as_completed(futures):
-            future.result()
-        end = (time.time() * 1000)
-        elapsed_time = end - start
-        print("[Python] Parallel implementation took " + str(elapsed_time) + " milliseconds.")
-        print("[Python] Processed " + str(len(listOfPeople)) + " records.")
+            executor.submit(insert_person, [person])
+    end = (time.time() * 1000)
+    elapsed_time = end - start
+    print("[Python] Parallel implementation took " + str(elapsed_time) + " milliseconds.")
+    print("[Python] Processed " + str(len(listOfPeople)) + " records.")
 
 if __name__ == '__main__':
     listOfPeople = []
-    wb = openpyxl.load_workbook(filename="sample/data1000.xlsx")
+    wb = openpyxl.load_workbook(filename="sample/data1000000.xlsx")
     for person in wb['Sheet1'].iter_rows(values_only=True):
         listOfPeople.append(person)
 
